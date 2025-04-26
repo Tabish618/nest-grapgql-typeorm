@@ -90,19 +90,21 @@ export class UserService {
       }
   }
 
+  async remove(id: string): Promise<User> {
+    try {
+      const user = await this.userRepository.findOne({ where: { id } });
   
-    async remove(id: string): Promise<User> {
-        try {
-         
-          const user = await this.userRepository.findOne({where: { id }});
-    
-          if (!user) {
-            throw new NotFoundException(`User with id ${id} not found.`);
-          }
-          await this.userRepository.delete(id);
-          return user;
-        } catch (error) {
-          throw new InternalServerErrorException('Failed to delete user');
-        }
+      if (!user) {
+        throw new NotFoundException(`User with id ${id} not found.`);
       }
+  
+      await this.userRepository.delete(id);
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error; // re-throw NotFoundException
+      }
+      throw new InternalServerErrorException('Failed to delete user');
+    }
+  }
 }
